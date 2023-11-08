@@ -3,6 +3,12 @@ import threading
 import time
 from db_interaction import insert_user, user_exists, get_user_by_id
 
+# metodo para cerrar sesion
+def cerrar_sesion(socket_cliente):
+    socket_cliente.close()
+    print("Sesion cerrada.")
+    
+
 def recibir_mensajes(socket_cliente):
     try:
         while True:
@@ -10,6 +16,9 @@ def recibir_mensajes(socket_cliente):
             if mensaje:
                 print(mensaje)
     except ConnectionResetError:
+        print("Conexión perdida con el servidor.")
+        return
+    except Exception as e:
         print("Conexión perdida con el servidor.")
         return
 
@@ -54,13 +63,19 @@ def main():
             usuario_destino = input("Ingrese el nombre del usuario con el que desea chatear: ")
             socket_cliente.send(f"!{usuario_destino}".encode('utf-8'))
             time.sleep(0.1)
+
+            if usuario_destino.lower() == "chao":
+                cerrar_sesion(socket_cliente)
+                # detener thread de recibir mensajes
+                recibir_hilos.join()
+                break
+
             mensaje = input(f"<<Mensaje a @{usuario_destino}: ")
             socket_cliente.send(f"@{usuario_destino}: {mensaje}".encode('utf-8'))
 
             if mensaje.lower() == "chao":
-                break
-        
-        socket_cliente.close()
+                cerrar_sesion(socket_cliente)
+                break     
     except KeyboardInterrupt:
         print("Saliendo del chat...")
         socket_cliente.send("chao".encode('utf-8'))

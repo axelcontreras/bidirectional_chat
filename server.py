@@ -91,7 +91,7 @@ def manejar_cliente(cliente):
             mensaje = cliente.recv(1024).decode('utf-8')
             if mensaje:
                 usuario_origen = clientes[cliente]
-                if mensaje.lower() == "chao":
+                if "chao" in mensaje.lower():
                     abandonar_chat(cliente)
                     break
                 if mensaje.startswith("!"):
