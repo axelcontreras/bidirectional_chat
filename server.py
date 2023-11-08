@@ -1,5 +1,6 @@
 import socket
 import threading
+import db_interaction as db
 
 clientes = {}
 direcciones = {}
@@ -11,9 +12,13 @@ def detener_servidor():
         cliente.close()
     server.close()
 
+# Enviar mensajes a todos los clientes conectados
+
 def broadcast(mensaje):
     for socket_cliente in clientes:
         socket_cliente.send(f"\n@server: {mensaje}".encode('utf-8'))
+
+# Listar usuarios conectados
 
 def enviar_lista_usuarios(socket_destino):
     lista_usuarios = "Lista de usuarios conectados:\n"
@@ -21,8 +26,18 @@ def enviar_lista_usuarios(socket_destino):
         lista_usuarios += usuario + "\n"
     socket_destino.send(lista_usuarios.encode('utf-8'))
 
+# Enviar mensaje a destino y guardar en la base de datos
+
+def guardar_datos_mensaje(usuario_origen, usuario_destino, mensaje):
+    try:
+        db.insert_message(usuario_origen, usuario_destino, mensaje)
+    except Exception as e:
+        print(f"Error al guardar el mensaje en la base de datos: {e}")
+
 def enviar_mensaje(socket_destino, mensaje):
     socket_destino.send(f"\n{mensaje}".encode('utf-8'))
+
+# Mensaje de abandono de chat y cerrar sesion del socket
 
 def abandonar_chat(socket_cliente):
     usuario = clientes[socket_cliente]
@@ -38,6 +53,8 @@ def verificar_usuario_conectado(usuario):
         return True
     else:
         return False
+
+# Manejo de conexiones entrantes
 
 def aceptar_conexiones():
     while True:

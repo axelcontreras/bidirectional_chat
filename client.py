@@ -1,6 +1,7 @@
 import socket
 import threading
 import time
+from db_interaction import insert_user, user_exists
 
 def recibir_mensajes(socket_cliente):
     try:
@@ -11,6 +12,19 @@ def recibir_mensajes(socket_cliente):
     except ConnectionResetError:
         print("Conexión perdida con el servidor.")
         return
+
+def guardar_usuario(usuario):
+    try:
+        insert_user(usuario)
+    except Exception as e:
+        print(f"Error al guardar el usuario en la base de datos: {e}")
+
+def verificar_existencia_usuario(usuario):
+    try:
+        validar = user_exists(usuario)
+        return validar
+    except Exception as e:
+        raise(f"Error al verificar la existencia del usuario en la base de datos: {e}")
 
 def main():
     host = input("Ingrese la dirección IP del servidor: ") or "localhost"  # Dirección IP del servidor
@@ -26,6 +40,10 @@ def main():
         return
 
     nombre_usuario = input("Ingrese su nombre de usuario: ")
+    if verificar_existencia_usuario(nombre_usuario):
+        pass
+    else:
+        guardar_usuario(nombre_usuario)
     socket_cliente.send(nombre_usuario.encode('utf-8'))
 
     recibir_hilos = threading.Thread(target=recibir_mensajes, args=(socket_cliente,))
