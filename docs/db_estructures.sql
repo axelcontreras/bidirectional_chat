@@ -19,7 +19,7 @@ CREATE TABLE conversations (
     conversation_id SERIAL PRIMARY KEY,
     user1_id INT NOT NULL,
     user2_id INT NOT NULL,
-    messages TEXT[],
+    messages VARCHAR(1000) NOT NULL,
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user1_id) REFERENCES users(user_id),
     FOREIGN KEY (user2_id) REFERENCES users(user_id)

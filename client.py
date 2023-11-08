@@ -1,7 +1,7 @@
 import socket
 import threading
 import time
-from db_interaction import insert_user, user_exists
+from db_interaction import insert_user, user_exists, get_user_by_id
 
 def recibir_mensajes(socket_cliente):
     try:
@@ -17,7 +17,7 @@ def guardar_usuario(usuario):
     try:
         insert_user(usuario)
     except Exception as e:
-        print(f"Error al guardar el usuario en la base de datos: {e}")
+        raise(f"Error al guardar el usuario en la base de datos: {e}")
 
 def verificar_existencia_usuario(usuario):
     try:

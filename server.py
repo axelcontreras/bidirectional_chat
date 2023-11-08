@@ -28,14 +28,24 @@ def enviar_lista_usuarios(socket_destino):
 
 # Enviar mensaje a destino y guardar en la base de datos
 
+def obtener_id_usuario(usuario):
+    try:
+        id_usuario = db.get_user_by_id(usuario)
+        return id_usuario
+    except Exception as e:
+        raise(f"Error al obtener el ID del usuario: {e}")
+
 def guardar_datos_mensaje(usuario_origen, usuario_destino, mensaje):
     try:
-        db.insert_message(usuario_origen, usuario_destino, mensaje)
+        id_user_origen = obtener_id_usuario(usuario_origen)
+        id_user_destino = obtener_id_usuario(usuario_destino)
+        db.insert_message(id_user_origen, id_user_destino, mensaje)
     except Exception as e:
         print(f"Error al guardar el mensaje en la base de datos: {e}")
 
 def enviar_mensaje(socket_destino, mensaje):
     socket_destino.send(f"\n{mensaje}".encode('utf-8'))
+    return mensaje
 
 # Mensaje de abandono de chat y cerrar sesion del socket
 
@@ -88,20 +98,25 @@ def manejar_cliente(cliente):
                     usuario_destino = mensaje[1:]
                     verify_user = verificar_usuario_conectado(usuario_destino)
                     if verify_user:
-                        enviar_mensaje(cliente, f"Iniciando chat con: '{usuario_destino}' .")
+                        mensaje = enviar_mensaje(cliente, f"Iniciando chat con: '{usuario_destino}' .")
+                        guardar_datos_mensaje(usuario_origen, usuario_destino, mensaje)
                     else:
-                        enviar_mensaje(cliente, f"El usuario '{usuario_destino}' no está conectado.")
+                        mensaje = enviar_mensaje(cliente, f"El usuario '{usuario_destino}' no está conectado.")
+                        guardar_datos_mensaje(usuario_origen, usuario_destino, mensaje)
                         break
                 elif mensaje.startswith("@"):
                     destinatario, mensaje_enviar = mensaje.split(": ", 1)
                     destinatario = destinatario[1:]
                     if destinatario in nombres_sockets:
                         socket_destinatario = nombres_sockets[destinatario]
-                        enviar_mensaje(socket_destinatario, f">>Mensaje de @{usuario_origen}: {mensaje_enviar}")
+                        mensaje = enviar_mensaje(socket_destinatario, f">>Mensaje de @{usuario_origen}: {mensaje_enviar}")
+                        guardar_datos_mensaje(usuario_origen, destinatario, mensaje)
                     else:
-                        enviar_mensaje(cliente, f"El usuario '{destinatario}' no existe o no está conectado.")
+                        mensaje = enviar_mensaje(cliente, f"El usuario '{destinatario}' no existe o no está conectado.")
+                        guardar_datos_mensaje(usuario_origen, destinatario, mensaje)
                 else:
-                    enviar_mensaje(cliente, f"No se logro enviar el mensaje a el usuario {usuario_origen}.")
+                    mensaje = enviar_mensaje(cliente, f"No se logro enviar el mensaje a el usuario {usuario_origen}.")
+                    guardar_datos_mensaje(usuario_origen, usuario_origen, mensaje)
                     pass
         except ConnectionResetError:
             abandonar_chat(cliente)
