@@ -19,142 +19,80 @@ def connect_to_db():
 
 # elegir el schema por defecto para la conexion
 def set_default_schema():
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SET search_path TO chat_schema")
-        conn.commit()
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras establecia el schema por defecto:", error)
-    finally:
-        cursor.close()
-        conn.close()
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("SET search_path TO chat_schema")
+                conn.commit()
+            except (Exception, psycopg2.Error) as error:
+                print("Error mientras establecia el schema por defecto:", error)
 
 # verifica si el usuario existe en la tabla users
 def user_exists(username):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,)) # Se define con , al final para que sea una tupla
-        user = cursor.fetchone()
-        if user:
-            return True
-        else:
-            return False
-    except (Exception, psycopg2.Error):
-        pass
-    finally:
-        cursor.close()
-        conn.close()
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("SELECT * FROM users WHERE username = %s", (username,)) # Se define con , al final para que sea una tupla
+                user = cursor.fetchone()
+                if user:
+                    return True
+                else:
+                    return False
+            except (Exception, psycopg2.Error):
+                pass
 
 # Inserta un nuevo usuario en la tabla users
-def insert_user(username, password, full_name):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT INTO users (username, password, full_name) VALUES (%s, %s, %s)", (username, password, full_name))
-        conn.commit()
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras insertaba datos de usuario:", error)
-    finally:
-        cursor.close()
-        conn.close()
+def insert_user(username):
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("INSERT INTO users (username, ) VALUES (%s)", (username))
+                conn.commit()
+            except (Exception, psycopg2.Error) as error:
+                print("Error mientras insertaba datos de usuario:", error)
 
-# Obtiene la informacion de un usuario por su nombre de usuario
-def get_user_by_username(username):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,)) # Se define con , al final para que sea una tupla
-        user = cursor.fetchone()
-        return user
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras recuperaba los datos del usuario por username:", error)
-    finally:
-        cursor.close()
-        conn.close()
+# # Obtiene la informacion de un usuario por su nombre de usuario
+# def get_user_by_username(username):
+#     with open(connect_to_db()) as conn:
+#         with open(conn.cursor()) as cursor:
+#             try:
+#                 cursor.execute("SELECT * FROM users WHERE username = %s", (username,)) # Se define con , al final para que sea una tupla
+#                 user = cursor.fetchone()
+#                 return user
+#             except (Exception, psycopg2.Error) as error:
+#                 print("Error mientras recuperaba los datos del usuario por username:", error)
 
 # Obtiene la informacion de un usuario por su ID
 def get_user_by_id(user_id):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,)) # Se define con , al final para que sea una tupla
-        user = cursor.fetchone()
-        return user
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras recuperaba los datos del usuario por ID:", error)
-    finally:
-        cursor.close()
-        conn.close()
-
-# Obtiene la informacion de un usuario por su nombre de usuario y contraseña
-def get_user_by_username_and_password(username, password):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM users WHERE username = %s AND password = %s", (username, password)) # Se define con , al final para que sea una tupla
-        user = cursor.fetchone()
-        return user
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras recuperaba los datos del usuario por username y password:", error)
-    finally:
-        cursor.close()
-        conn.close()
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("SELECT * FROM users WHERE user_id = %s", (user_id,)) # Se define con , al final para que sea una tupla
+                user = cursor.fetchone()
+                return user
+            except (Exception, psycopg2.Error) as error:
+                print("Error mientras recuperaba los datos del usuario por ID:", error)
 
 # Inserta un mensaje en la tabla conversations
 def insert_message(sender_id, receiver_id, message_text):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("INSERT INTO conversations (user1_id, user2_id, messages) VALUES (%s, %s, ARRAY[%s])", (sender_id, receiver_id, message_text))
-        conn.commit()
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras insertaba mensaje de la conversacion:", error)
-    finally:
-        cursor.close()
-        conn.close()
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("INSERT INTO conversations (user1_id, user2_id, messages) VALUES (%s, %s, %s)", (sender_id, receiver_id, message_text))
+                conn.commit()
+            except (Exception, psycopg2.Error) as error:
+                print("Error mientras insertaba mensaje de la conversacion:", error)
 
 # Obtiene todos los mensajes entre dos usuarios
 def get_messages_between_users(user1_id, user2_id):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM conversations WHERE (user1_id = %s AND user2_id = %s) OR (user1_id = %s AND user2_id = %s)", (user1_id, user2_id, user2_id, user1_id))
-        messages = cursor.fetchall()
-        return messages
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras recuperaba los datos de mensaje entre usuarios:", error)
-    finally:
-        cursor.close()
-        conn.close()
-
-# Marca una conversacion como finalizada cuando un usuario abandona el chat
-def mark_conversation_as_ended(user1_id, user2_id):
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("UPDATE conversations SET ended = TRUE WHERE (user1_id = %s AND user2_id = %s) OR (user1_id = %s AND user2_id = %s)", (user1_id, user2_id, user2_id, user1_id))
-        conn.commit()
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras marcaba como finalizada la conversacion:", error)
-    finally:
-        cursor.close()
-        conn.close()
-
-# Obtiene una lista de todos los usuarios registrados
-def get_all_users():
-    conn = connect_to_db()
-    cursor = conn.cursor()
-    try:
-        cursor.execute("SELECT * FROM users")
-        users = cursor.fetchall()
-        return users
-    except (Exception, psycopg2.Error) as error:
-        print("Error mientras recuperaba los datos de todos los usuarios:", error)
-    finally:
-        cursor.close()
-        conn.close()
+    with open(connect_to_db()) as conn:
+        with open(conn.cursor()) as cursor:
+            try:
+                cursor.execute("SELECT * FROM conversations WHERE (user1_id = %s AND user2_id = %s) ORDER BY timestamp ASC", (user1_id, user2_id, user2_id, user1_id))
+                messages = cursor.fetchall()
+                return messages
+            except (Exception, psycopg2.Error) as error:
+                print("Error mientras recuperaba los datos de mensaje entre usuarios:", error)
 
 # Cierra la conexion a la base de datos
 def close_db_connection():
